@@ -1,0 +1,57 @@
+# Xcode
+build/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcworkspace
+xcuserdata/
+*.xccheckout
+*.moved-aside
+DerivedData/
+*.hmap
+*.ipa
+*.dsym
+*.dSYM/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+*.xcodeproj/xcshareddata/xcschemes/
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Carthage
+Carthage/
+Checkouts/
+
+# IDE
+.DS_Store
+.idea/
+*.swp
+*.swo
+*~
+.vscode/
+
+# Compiler
+*.o
+*.d
+
+# Build output
+build/
+output/
+dist/
+
+# Environment files
+.env
+.env.local
+*.pem
+*.p12
+
+# Generated files
+*.generated.swift
+
+# Logs
+*.log
