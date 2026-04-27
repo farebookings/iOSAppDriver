@@ -19,6 +19,18 @@ jobs:
         with:
           xcode-version: latest-stable
       
+      - name: Generate Xcode Project (if missing)
+        run: |
+          if [ ! -f "iOSAppDriver.xcodeproj/project.pbxproj" ]; then
+            echo "📦 Installing xcodeproj gem..."
+            sudo gem install xcodeproj --no-document
+            echo "🔨 Generating Xcode project from Package.swift..."
+            xcodeproj generate-xcodeproj
+          else
+            echo "✅ Xcode project already exists"
+          fi
+        working-directory: ${{ github.workspace }}
+      
       - name: Install dependencies (CocoaPods)
         run: |
           if [ -f "Podfile" ]; then
