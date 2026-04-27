@@ -19,6 +19,8 @@ jobs:
   build:
     name: Build & Archive
     runs-on: macos-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     
     outputs:
       build-status: ${{ job.status }}
