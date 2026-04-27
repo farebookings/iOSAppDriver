@@ -22,12 +22,18 @@ jobs:
       - name: Generate Xcode Project (if missing)
         run: |
           if [ ! -f "iOSAppDriver.xcodeproj/project.pbxproj" ]; then
-            echo "📦 Installing xcodeproj gem..."
-            sudo gem install xcodeproj --no-document
-            echo "🔨 Generating Xcode project from Package.swift..."
-            xcodeproj generate-xcodeproj
+            echo "📦 Xcode project missing, attempting to generate..."
+            if command -v xcodeproj &>/dev/null; then
+              sudo gem install xcodeproj --no-document --verbose 2>&1 || true
+              xcodeproj generate-xcodeproj --path . || echo "⚠️ Generation attempt completed"
+            fi
+          fi
+          
+          if [ -f "iOSAppDriver.xcodeproj/project.pbxproj" ]; then
+            echo "✅ Xcode project ready"
           else
-            echo "✅ Xcode project already exists"
+            echo "❌ ERROR: Xcode project not found"
+            exit 1
           fi
         working-directory: ${{ github.workspace }}
       
@@ -41,11 +47,13 @@ jobs:
       
       - name: Build iOS App
         run: |
-          xcodebuild -scheme iOSAppDriver \
+          xcodebuild \
+            -project iOSAppDriver.xcodeproj \
+            -scheme iOSAppDriver \
             -configuration Debug \
             -sdk iphonesimulator \
             -derivedDataPath build \
-            -verbose
+            -verbose build
         working-directory: ${{ github.workspace }}
       
       - name: Run Tests (if available)
@@ -61,7 +69,9 @@ jobs:
       - name: Archive Build
         if: success()
         run: |
-          xcodebuild -scheme iOSAppDriver \
+          xcodebuild \
+            -project iOSAppDriver.xcodeproj \
+            -scheme iOSAppDriver \
             -configuration Release \
             -sdk iphoneos \
             -archivePath "build/iOSAppDriver.xcarchive" \
