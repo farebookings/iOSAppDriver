@@ -3,10 +3,10 @@ name: 📱 Build & Release
 on:
   push:
     branches: [ main, master, develop ]
-    tags: [ 'v*' ]  # Trigger en release tags
+    tags: [ 'v*' ]
   pull_request:
     branches: [ main, master, develop ]
-  workflow_dispatch:  # Permitir ejecutar manualmente
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -17,14 +17,14 @@ env:
 
 jobs:
   build:
-    name: Build & Archive
+    name: Build & Verify
     runs-on: macos-latest
     
     outputs:
       build-status: ${{ job.status }}
     
     steps:
-      - name: ⬇️  Checkout code
+      - name: ⬇️ Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -34,79 +34,42 @@ jobs:
         with:
           xcode-version: ${{ env.XCODE_VERSION }}
       
-      - name: 📦 Install dependencies
+      - name: 🔨 Build for Simulator (Debug)
         run: |
-          # CocoaPods
-          if [ -f "Podfile" ]; then
-            echo "Installing pods..."
-            sudo gem install cocoapods
-            pod install
-          fi
-          
-          # Swift Package Manager
-          if [ -f "Package.swift" ]; then
-            echo "Resolving Swift packages..."
-            swift package resolve
-          fi
-      
-      - name: 🔨 Build for Simulator
-        run: |
-          xcodebuild \
+          xcodebuild -project iOSAppDriver.xcodeproj \
             -scheme iOSAppDriver \
             -configuration Debug \
             -sdk iphonesimulator \
             -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
             build
       
-      - name: 🔨 Build for Device
-        if: success()
+      - name: 🔨 Build for Simulator (Release)
         run: |
-          xcodebuild \
+          xcodebuild -project iOSAppDriver.xcodeproj \
             -scheme iOSAppDriver \
             -configuration Release \
-            -sdk iphoneos \
+            -sdk iphonesimulator \
             -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
             build
-      
-      - name: 📦 Archive for Release
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          xcodebuild \
-            -scheme iOSAppDriver \
-            -configuration Release \
-            -sdk iphoneos \
-            -archivePath "build/iOSAppDriver.xcarchive" \
-            archive
-      
-      - name: 📲 Export IPA
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          xcodebuild \
-            -exportArchive \
-            -archivePath "build/iOSAppDriver.xcarchive" \
-            -exportOptionsPlist exportOptions.plist \
-            -exportPath "build/ipa" \
-            || echo "⚠️  Export IPA skipped (signing required)"
       
       - name: 📤 Upload Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts-${{ github.run_number }}
-          path: |
-            build/
+          path: build/Build/Products/
           retention-days: 30
       
-      - name: 🏷️  Create Release
+      - name: 🏷️ Create Release (tags only)
         if: startsWith(github.ref, 'refs/tags/v') && success()
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
+          generate_release_notes: true
 
   notify:
     name: Notify Status

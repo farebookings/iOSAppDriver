@@ -7,10 +7,35 @@
 	<key>signingStyle</key>
 	<string>automatic</string>
 	<key>teamID</key>
-	<string>YOUR_TEAM_ID</string>
+	<string></string>
 	<key>stripSwiftSymbols</key>
 	<true/>
 	<key>uploadBitcode</key>
 	<false/>
 </dict>
 </plist>
+<!--
+  ⚠️  PARA EXPORTAR IPA LOCALMENTE:
+  
+  1. Sustituye <string></string> arriba por tu Team ID real de Apple Developer
+     Ejemplo: <string>ABC123XYZ4</string>
+  
+  2. Asegúrate de tener el certificado de desarrollo en tu llavero.
+  
+  3. Ejecuta manualmente en tu Mac:
+     xcodebuild -project iOSAppDriver.xcodeproj \
+       -scheme iOSAppDriver \
+       -configuration Release \
+       -sdk iphoneos \
+       -archivePath build/iOSAppDriver.xcarchive \
+       archive
+     
+     xcodebuild -exportArchive \
+       -archivePath build/iOSAppDriver.xcarchive \
+       -exportOptionsPlist exportOptions.plist \
+       -exportPath build/output
+  
+  NOTA: La exportación de IPA NO se hace en CI (GitHub Actions)
+  porque requiere certificados de firma que no están disponibles
+  en los runners públicos.
+-->
